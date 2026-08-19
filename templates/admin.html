@@ -9,12 +9,16 @@
 
 <body class="admin_body">
     <div style="background-color: rgba(255, 255, 255, 0.5); border: 2px solid black; border-radius: 50px;
-         width: 500px; height: 500px; padding: 10px;">
-        <h2>User Setup</h2>
+         width: 500px; height: 500px; padding: 10px; padding-left: 40px;">
+        
+        <div style="display: grid; grid-template-columns: 420px 80px;">
+            <h2>User Setup</h2>
+            <h1 style="line-height: 75%; text-shadow: 5px 5px #212121;">PI<br>PA</h1>
+        </div>
 
         <input name = "email" id = "email_input" placeholder = "user email">
         <h4 style="margin-bottom: 0px; margin-top: 10px;">User list:</h4>
-        <div id="user_list" style="margin-bottom: 10px;"></div>
+        <div id="user_list" style="margin-bottom: 10px; overflow-y: auto; height: 220px;"></div>
 
         <button onclick="adminUpdate('remove_user')" class="button" style="margin-bottom: 10px;">Remove user</button>
 

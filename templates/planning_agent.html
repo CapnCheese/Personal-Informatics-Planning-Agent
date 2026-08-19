@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Planning Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+</head>
+<body class="agent_body">
+
+<h1 style="margin-left: 30px;">ChatPA</h1>
+
+<div id="dots" style="display: block; display: flex; flex-direction: row; align-items: center; justify-content: center; column-gap: 25px; height: 75vh; width: 100vw;">
+<div id="dot1"></div>
+<div id="dot2"></div>
+<div id="dot3"></div>
+</div>
+
+<div id="all" style="display: none;">
+
+
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+        <button id="openHelpButton" onclick="help('open')">Help</button>
+
+        <div id="helpText" style="display: none; flex-direction: column; align-items: flex-end;">
+            <div style="margin-bottom: 10px; width: 20vw; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; padding: 10px;">
+                <h4>Messaging:</h4>
+                <p>Don't abuse the chatting functionality - all messages will be read</p>
+                <h4>Planning table:</h4>
+                <p>Submitting data causes all entered information to be entered into the chat, while retaining the data in the table</p>
+                <p>Downloading a summary (when data is entered into the table) starts a download of a text file with the data and the chat history</p>
+                <p>Clearing history results in ALL data to be cleared - chat history and the data table</p>
+                <p>Contact the developer (bug reporting/last resort): afrango1@umbc.edu</p>
+            </div>
+            <button onclick="help('close')">Close</button>
+        </div>
+    </div>
+
+
+    <button type="button" onclick="displayTables('true')" id="expandButton" style="width: 50px; height: 500px; font-size: 50px; position: absolute; left: 0px; top: 94px;">></button>
+    <button type="button" onclick="displayTables('false')" id="collapseButton" style="width: 50px; height: 500px; font-size: 50px; display: none; position: absolute; left: 0px; top: 94px;"><</button>
+
+    <div id="center" style="display: flex; flex-direction: column; align-items: center; z-index: 1;">
+        <div id="chatContainer" style="width: min(900px, 90vw); height: 60vh; overflow-y: auto; overflow-x: hidden; padding: 20px; box-sizing: border-box;">
+            <div id="history_panel">
+                <div id="history_log"></div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0px; margin-top: 15px; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; color: white; box-shadow: 10px;">
+            <form id="inputForm">
+                <textarea class = "userInput" id = "userInput" style="border: none;" placeholder="Ask anything"></textarea>
+            </form>
+            <button onclick="enterMessage()" style="margin-right: 16px; margin-left: 16px;">Send</button>
+        </div>
+    </div>
+
+
+<div id="tables" style="display: none; margin-left: 60px;">
+
+    <div style="width: min(420px, 50vw); margin-top: 10px;">
+        <button onclick="updateRow('variable', 'add')" id="rowButton" type="submit" style="width: 150px;">+ row</button>
+        <button onclick="updateRow('variable', 'remove')" id="rowButton" type="submit" style="width: 150px;">- row</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 10vw  calc(5vw + 22px) 10vw 10vw calc(5vw + 22px); height: 60px; column-gap: 20px; width: fit-content; padding-right: 24px;">
+        <p class="check_in_input">Variable:</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Unit:</p>
+        <p class="check_in_input">Collection Method:</p>
+        <p class="check_in_input">Goal:</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Type:</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 10vw calc(5vw + 22px) 10vw 10vw calc(5vw + 22px); height: 200px; overflow-y: auto; column-gap: 20px; width: fit-content; padding-right: 24px;">
+        <div id="variable" style="display: flex; flex-direction: column; width: 10vw;">
+            <textarea id="variable_1" placeholder="variable 1" class="check_in_input"></textarea>
+        </div>
+        <div id="unit" style="display: flex; flex-direction: column; width: 200px;">
+            <textarea id="unit_1" placeholder="unit 1" class="check_in_input"></textarea>
+        </div>
+        <div id="collection_method" style="display: flex; flex-direction: column; width: 200px;">
+            <textarea id="collection_method_1" placeholder="collection method 1" class="check_in_input"></textarea>
+        </div>
+        <div id="goal" style="display: flex; flex-direction: column; width: 200px;">
+            <textarea id="goal_1" placeholder="goal 1" class="check_in_input"></textarea>
+        </div>
+        <div id="variable_type" style="display: flex; flex-direction: column; width: 5vw;">
+            <select id="variable_type_1" placeholder="type 1" class="check_in_input" style="width: calc(5vw + 44px); height: 64px;">
+                <option>Sleep</option>
+                <option>Excercise</option>
+                <option>Food</option>
+                <option>Health-others</option>
+                <option>SWB</option>
+                <option>Work</option>
+                <option>Digital</option>
+                <option>Study</option>
+                <option>Connections</option>
+                <option>Hobby/skills</option>
+                <option>Spiritual</option>
+                <option>Others</option>
+            </select>
+        </div>
+    </div>
+
+
+
+
+
+    <div style="width: min(420px, 50vw); margin-top: 10px;">
+        <button onclick="updateRow('hypothesis', 'add')" id="rowButton" type="submit" style="width: 150px;">+ row</button>
+        <button onclick="updateRow('hypothesis', 'remove')" id="rowButton" type="submit" style="width: 150px;">- row</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 10vw 10vw calc(5vw + 22px) calc(5vw + 22px) calc(5vw + 22px) calc(5vw + 22px); height: 60px; column-gap: 20px; width: fit-content; padding-right: 24px;">
+        <p class="check_in_input">Hypothesis:</p>
+        <p class="check_in_input">URL:</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Type of Study:</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Strength (1-5):</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Link to data 1:</p>
+        <p class="check_in_input" style="width: calc(5vw + 22px);">Link to data 2:</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 10vw 10vw calc(5vw + 22px) calc(5vw + 22px) calc(5vw + 22px) calc(5vw + 22px); height: 200px; overflow-y: auto; column-gap: 20px; width: fit-content; padding-right: 24px;">
+        <div id="hypothesis" style="display: flex; flex-direction: column; width: 10vw;">
+            <textarea id="hypothesis_1" placeholder="hypothesis 1" class="check_in_input"></textarea>
+        </div>
+        <div id="evidence" style="display: flex; flex-direction: column; width: 10vw;">
+            <textarea id="evidence_1" placeholder="url/citation 1" class="check_in_input"></textarea>
+        </div>
+        <div id="study_type" style="display: flex; flex-direction: column; width: 10vw;">
+            <select id="study_type_1" placeholder="type of study 1" class="check_in_input" style="width: calc(5vw + 44px); height: 64px;">
+                <option>Systematic Review</option>
+                <option>Randomized Controlled Trials</option>
+                <option>Cohort Study</option>
+                <option>Case Control Study</option>
+                <option>Case Study/Series</option>
+                <option>Expert Opinion</option>
+                <option>Animal/Cell Study</option>
+                <option>Unsure</option>
+            </select>
+        </div>
+        <div id="strength" style="display: flex; flex-direction: column; width: 5vw;">
+            <select id="strength_1" placeholder="strength 1" class="check_in_input" style="width: calc(5vw + 44px); height: 64px;">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+            </select>
+        </div>
+        <div id="data_link_1" style="display: flex; flex-direction: column; width: 5vw;">
+            <select id="link_1" placeholder="link to data 1" class="check_in_input" style="width: calc(5vw + 44px); height: 64px;">
+                <option>Variable 1</option>
+            </select>
+        </div>
+        <div id="data_link_2" style="display: flex; flex-direction: column; width: 5vw;">
+            <select id="link_2" placeholder="link to data 1" class="check_in_input" style="width: calc(5vw + 44px); height: 64px;">
+                <option>Variable 1</option>
+            </select>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+<div id="extractButtons" style="display: none; margin-left: 60px; margin-top: 20px; width: 100vw;">
+    <div style="display: grid; grid-template-columns: 200px 200px; column-gap: 50px;">
+        <button onclick="extractCheckIn('submit')" id="extractButton" type="submit" style="width: 200px; height: 50px;">
+            <span class="text-default">Submit data</span>
+            <span class="text-hover">Submits the data to the agent for analysis</span>
+        </button>
+        <button onclick="extractCheckIn('download')" id="downloadButton" type="type="submit" style="width: 200px; height: 50px;">
+            <span class="text-default">Download summary</span>
+            <span class="text-hover">Downloads a text file with table and chat history</span>
+        </button>
+    </div>
+</div>
+
+
+
+
+
+<div id="logoutButton" style="margin-top: 22px; margin-bottom: 30px; width: 98vw; display: flex; flex-direction: row; justify-content: flex-end; column-gap: 20px;">
+    <button id="clearHistoryButton" onclick="clearHistory()">Clear history</button>
+    <button id="confirmClearHistoryButton" onclick="confirmClearHistory()" style="width: 350px; display: none;">Are you sure? This will make you lose ALL of your work. Please download a summary.</button>
+
+    <form action="/logout" method="POST">
+        <button type="submit" class="button">Logout</button>
+    </form>
+</div>
+
+<a href="/admin_page" id="admin_page_button" style="width: 98vw; display: none; margin-top: -50px; margin-left: 2vw; flex-direction: row; justify-content: flex-start;">
+    <button type="button">Return to admin page</button>
+</a>
+
+
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        let lastDiv = null;
+
+        let hypothesisInputList = [];
+        let evidenceInputList = [];
+        let studyTypeInputList = [];
+        let strengthInputList = [];
+        let dataLink1InputList = [];
+        let dataLink2InputList = [];
+
+        let variableInputList = [];
+        let unitInputList = [];
+        let collectionMethodInputList = [];
+        let goalInputList = [];
+        let variableTypeInputList = [];
+
+        variableTypes = [
+                    "Sleep",
+                    "Excercise",
+                    "Food",
+                    "Health-others",
+                    "SWB",
+                    "Work",
+                    "Digital",
+                    "Study",
+                    "Connections",
+                    "Hobby/Skills",
+                    "Spiritual",
+                    "Others"
+                ];
+
+        studyTypes = [
+                    "Systematic Review",
+                    "Randomized Controlled Trials",
+                    "Cohort Study",
+                    "Case Control Study",
+                    "Case Study/Series",
+                    "Expert Opinion",
+                    "Animal/Cell Study",
+                    "Unsure"
+                    ];
+
+        window.onload = async () => {
+
+            setTimeout(() => {
+                document.getElementById("all").style.display = "block";
+                document.getElementById("dots").style.display = "none";
+            }, 2000);
+
+            const get_history = await fetch("/get_history", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({destination: "webpage"})
+            });
+            const history = await get_history.json();
+            history.forEach(msg => updateHistory(msg.role, msg.content));
+
+            if(history.length == 0)
+            {
+                const message = "welcomemessage"
+
+                updateHistory("assistant", "Loading...");
+                
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({message})
+                });
+                const data = await response.json();
+
+                updateHistory("remove", "");
+                updateHistory("assistant", data.reply);
+            }
+
+            variableInputList.push(document.getElementById("variable_1"));
+            unitInputList.push(document.getElementById("unit_1"));
+            collectionMethodInputList.push(document.getElementById("collection_method_1"));
+            goalInputList.push(document.getElementById("goal_1"));
+            variableTypeInputList.push(document.getElementById("variable_type_1"));
+
+            document.getElementById("variable_1").addEventListener("input", updateVariableOptions);
+            
+            hypothesisInputList.push(document.getElementById("hypothesis_1"));
+            evidenceInputList.push(document.getElementById("evidence_1"));
+            studyTypeInputList.push(document.getElementById("study_type_1"));
+            strengthInputList.push(document.getElementById("strength_1"));
+
+            dataLink1InputList.push(document.getElementById("link_1"));
+            dataLink2InputList.push(document.getElementById("link_2"));
+            
+
+            const get_role = await fetch("/get_data", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({action: "get_role"})
+            })
+
+            const role = await get_role.json();
+            if(role.role == "admin") {
+                document.getElementById("admin_page_button").style.display = "flex";
+            }
+        };
+
+        function updateHistory(role, content) {
+            const log = document.getElementById("history_log");
+            const div = document.createElement("div");
+
+            if(role == "remove")
+            {
+                log.removeChild(lastDiv);
+                return;
+            }
+
+            div.className = role == "user" ? "msg-user" : "msg-ai";
+            div.innerHTML = (role == "user" ? "<b>You:</b><br>" : "<b>AI:</b><br>") + marked.parse(content);
+
+            log.appendChild(div);
+
+            lastDiv = div;
+        }
+        
+        async function enterMessage() {
+            const message = document.getElementById("userInput").value;
+            document.getElementById("inputForm").reset();
+
+            updateHistory("user", message);
+            updateHistory("assistant", "Loading...");
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: message, is_revision: false})
+            });
+            updateHistory("remove", "");
+
+            const data = await response.json();
+
+            updateHistory("assistant", data.reply);
+        }
+
+        function displayTables(display) {
+            if (display == "true")
+        {
+            document.getElementById("center").style.display = "box";
+            document.getElementById("center").style.position = "absolute";
+            document.getElementById("center").style.right = "calc(20vw - 100px)";
+            document.getElementById("center").style.top = "120px";
+            document.getElementById("center").style.width = "calc(200px)";
+            document.getElementById("chatContainer").style.width = "calc(35vw)";
+            document.getElementById("chatContainer").style.height = "50vh";
+            document.getElementById("userInput").style.width = "calc(35vw - 300px)";
+            document.getElementById("tables").style.display = "";
+
+            document.getElementById("logoutButton").style.marginTop = "0px";
+            document.getElementById("extractButtons").style.display = "";
+            document.getElementById("collapseButton").style.display = "";
+            document.getElementById("expandButton").style.display = "none";
+        }
+
+            if (display == "false")
+        {
+            document.getElementById("center").style.display = "flex";
+            document.getElementById("center").style.position = "inherit";
+            document.getElementById("center").style.right = "0px";
+            document.getElementById("center").style.top = "0px";
+            document.getElementById("center").style.width = "100vw";
+            document.getElementById("chatContainer").style.width = "min(900px, 90vw)";
+            document.getElementById("chatContainer").style.height = "60vh";
+            document.getElementById("userInput").style.width = "min(600px, 50vw)";
+            document.getElementById("tables").style.display = "none";
+
+            document.getElementById("logoutButton").style.marginTop = "22px";
+            document.getElementById("extractButtons").style.display = "none";
+            document.getElementById("collapseButton").style.display = "none";
+            document.getElementById("expandButton").style.display = "";
+        }
+
+        }
+
+        function updateRow(role, action) {
+            const hypothesis_rows = document.getElementById("hypothesis");
+            const evidence_rows = document.getElementById("evidence");
+            const study_type_rows = document.getElementById("study_type");
+            const strength_rows = document.getElementById("strength");
+            const link_1_rows = document.getElementById("data_link_1");
+            const link_2_rows = document.getElementById("data_link_2");
+
+            const variable_rows = document.getElementById("variable");
+            const unit_rows = document.getElementById("unit");
+            const collection_method_rows = document.getElementById("collection_method");
+            const goal_rows = document.getElementById("goal");
+            const variable_type_rows = document.getElementById("variable_type");
+            
+            if(action == "remove")
+            {
+                if(role == "hypothesis")
+                {
+                    if(hypothesisInputList.length > 1) {
+
+                    hypothesis_rows.removeChild(hypothesisInputList[hypothesisInputList.length-1]);
+                    hypothesisInputList.pop();
+
+                    evidence_rows.removeChild(evidenceInputList[evidenceInputList.length-1]);
+                    evidenceInputList.pop();
+
+                    study_type_rows.removeChild(studyTypeInputList[studyTypeInputList.length-1]);
+                    studyTypeInputList.pop();
+
+                    strength_rows.removeChild(strengthInputList[strengthInputList.length-1]);
+                    strengthInputList.pop();
+                    
+                    link_1_rows.removeChild(dataLink1InputList[dataLink1InputList.length-1]);
+                    dataLink1InputList.pop();
+
+                    link_2_rows.removeChild(dataLink2InputList[dataLink2InputList.length-1]);
+                    dataLink2InputList.pop();
+
+                }
+
+                    return;
+                }
+                else if(role == "variable")
+                {
+                    if(variableInputList.length > 1) {
+                
+                    variable_rows.removeChild(variableInputList[variableInputList.length-1]);
+                    variableInputList.pop();
+
+                    unit_rows.removeChild(unitInputList[unitInputList.length-1]);
+                    unitInputList.pop();
+
+                    collection_method_rows.removeChild(collectionMethodInputList[collectionMethodInputList.length-1]);
+                    collectionMethodInputList.pop();
+
+                    goal_rows.removeChild(goalInputList[goalInputList.length-1]);
+                    goalInputList.pop();
+
+                    variable_type_rows.removeChild(variableTypeInputList[variableTypeInputList.length-1]);
+                    variableTypeInputList.pop();
+
+                }
+
+                    dataLink1InputList.forEach(select => {
+                        if(select.options.length > 1)
+                    {
+                        select.remove(select.options.length-1);
+                    }
+                    });
+
+                    dataLink2InputList.forEach(select => {
+                        if(select.options.length > 1)
+                    {
+                        select.remove(select.options.length-1);
+                    }
+                    }); 
+
+                    return;
+                }
+            }
+
+
+
+            if(role == "hypothesis")
+            {
+                const input1 = document.createElement("textarea");
+                input1.className = "check_in_input";
+                input1.placeholder = `hypothesis ${hypothesisInputList.length + 1}`;
+                hypothesis_rows.appendChild(input1);
+                hypothesisInputList.push(input1);
+
+                const input2 = document.createElement("textarea");
+                input2.className = "check_in_input";
+                input2.placeholder = `url/citation ${evidenceInputList.length + 1}`;
+                evidence_rows.appendChild(input2);
+                evidenceInputList.push(input2);
+
+                const input3 = document.createElement("select");
+                studyTypes.forEach(type => {
+                    const option = document.createElement("option");
+                    option.textContent = type;
+                    input3.appendChild(option);
+                });
+                input3.style.width = "calc(5vw + 44px)";
+                input3.style.height = "64px";
+                input3.className = "check_in_input";
+                study_type_rows.appendChild(input3);
+                studyTypeInputList.push(input3);
+
+                const input4 = document.createElement("select");
+                for (let i = 0; i < 5; i++) {
+                    const option = document.createElement("option");
+                    option.textContent = i + 1;
+                    input4.appendChild(option);
+                };
+                input4.className = "check_in_input";
+                input4.style.width = "calc(5vw + 44px)";
+                input4.style.height = "64px";
+                strength_rows.appendChild(input4);
+                strengthInputList.push(input4);
+
+                const input5 = document.createElement("select");
+                variableInputList.forEach(variable => {
+                    const option = document.createElement("option");
+                    option.textContent = `Variable ${variableInputList.indexOf(variable) + 1}`;
+                    input5.appendChild(option);
+                });
+                input5.className = "check_in_input";
+                input5.style.width = "calc(5vw + 44px)";
+                input5.style.height = "64px";
+                link_1_rows.appendChild(input5);
+                dataLink1InputList.push(input5);
+
+                const input6 = document.createElement("select");
+
+                variableInputList.forEach(variable => {
+                    const option = document.createElement("option");
+                    option.textContent = `Variable ${variableInputList.indexOf(variable) + 1}`;
+                    input6.appendChild(option);
+                });
+
+                input6.className = "check_in_input";
+                input6.style.width = "calc(5vw + 44px)";
+                input6.style.height = "64px";
+                link_2_rows.appendChild(input6);
+                dataLink2InputList.push(input6);
+
+                return;
+            }
+            else if(role == "variable")
+            {
+                const input1 = document.createElement("textarea");
+                input1.className = "check_in_input";
+                input1.placeholder = `variable ${variableInputList.length + 1}`;
+                variable_rows.appendChild(input1);
+                input1.addEventListener("input", updateVariableOptions);
+                variableInputList.push(input1);
+
+                const input2 = document.createElement("textarea");
+                input2.className = "check_in_input";
+                input2.placeholder = `unit ${unitInputList.length + 1}`;
+                unit_rows.appendChild(input2);
+                unitInputList.push(input2);
+
+                const input3 = document.createElement("textarea");
+                input3.className = "check_in_input";
+                input3.placeholder = `collection method ${collectionMethodInputList.length + 1}`;
+                collection_method_rows.appendChild(input3);
+                collectionMethodInputList.push(input3); 
+
+                const input4 = document.createElement("textarea");
+                input4.className = "check_in_input";
+                input4.placeholder = `goal ${goalInputList.length + 1}`;
+                goal_rows.appendChild(input4);
+                goalInputList.push(input4);
+
+                const input5 = document.createElement("select");
+                variableTypes.forEach(type => {
+                    const option = document.createElement("option");
+                    option.textContent = type;
+                    input5.appendChild(option);
+                });
+                input5.style.width = "calc(5vw + 44px)";
+                input5.style.height = "64px";
+                input5.className = "check_in_input";
+                variable_type_rows.appendChild(input5);
+                variableTypeInputList.push(input5);
+
+                const optionText = `Variable ${variableInputList.length}`
+
+                dataLink1InputList.forEach(select => {
+                    const option = document.createElement("option");
+                    option.textContent = optionText;
+                    select.appendChild(option);
+                });
+
+                dataLink2InputList.forEach(select => {
+                    const option = document.createElement("option");
+                    option.textContent = optionText;
+                    select.appendChild(option);
+                });
+
+                return;
+            }
+        }
+
+        function updateVariableOptions() {
+            dataLink1InputList.forEach(select => {
+                select.innerHTML = "";
+
+                variableInputList.forEach((variable, index) => {
+                    const option = document.createElement("option");
+
+                    option.value = variable.value
+                    option.textContent = variable.value || `Variable ${index + 1}`;
+
+                    select.appendChild(option);
+                });
+            });
+
+            dataLink2InputList.forEach(select => {
+                select.innerHTML = "";
+
+                variableInputList.forEach((variable, index) => {
+                    const option = document.createElement("option");
+
+                    option.value = variable.value
+                    option.textContent = variable.value || `Variable ${index + 1}`;
+
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        async function extractCheckIn(action) {
+            let hypothesis = [];
+            let evidence = [];
+            let study_type = [];
+            let evidence_strength = [];
+            let data_link_1 = [];
+            let data_link_2 = [];
+
+            let variable = [];
+            let unit = [];
+            let collection_method = [];
+            let goal = [];
+            let variable_type = [];
+            
+            hypothesisInputList.forEach(input => {
+                hypothesis.push(input.value);
+            });
+            evidenceInputList.forEach(input => {
+                evidence.push(input.value);
+            });
+            studyTypeInputList.forEach(input => {
+                study_type.push(input.value);
+            });
+            strengthInputList.forEach(input => {
+                evidence_strength.push(input.value);
+            });
+            dataLink1InputList.forEach(input => {
+                data_link_1.push(input.value);
+            });
+            dataLink2InputList.forEach(input => {
+                data_link_2.push(input.value);
+            });
+
+
+
+            variableInputList.forEach(input => {
+                variable.push(input.value);
+            });
+            unitInputList.forEach(input => {
+                unit.push(input.value);
+            });
+            collectionMethodInputList.forEach(input => {
+                collection_method.push(input.value);
+            });
+            goalInputList.forEach(input => {
+                goal.push(input.value);
+            });
+            variableTypeInputList.forEach(input => {
+                variable_type.push(input.value);
+            });
+
+
+            if(action == "submit")
+        {
+            message = [];
+            variable.forEach((variable, index) => {
+                if(variable == "") variable = "N/A";
+                if(unit[index] == "") unit[index] = "N/A";
+                if(collection_method[index] == "") collection_method[index] = "N/A";
+                if(goal[index] == "") goal[index] = "N/A";
+                if(variable_type[index] == "") variable_type[index] = "N/A";
+
+                message.push(
+                `### Variable ${index+1}\n\n` +
+                `**Variable:** ${variable}\n\n` +
+                `**Unit:** ${unit[index]}\n\n` +
+                `**Collection method:** ${collection_method[index]}\n\n` +
+                `**Goal:** ${goal[index]}\n\n` +
+                `**Type:** ${variable_type[index]}`
+                );
+            });
+            hypothesis.forEach((hypothesis, index) => {
+                if(hypothesis == "") hypothesis = "N/A";
+                if(evidence[index] == "") evidence[index] = "N/A";
+                if(study_type[index] == "") study_type[index] = "N/A";
+                if(evidence_strength[index] == "") evidence_strength[index] = "N/A";
+
+                message.push(
+                `### Hypothesis ${index+1}, ${data_link_1[index]} & ${data_link_2[index]}\n\n`+
+                `**Hypothesis:** ${hypothesis}\n\n` +
+                `**Evidence:** ${evidence[index]}\n\n` +
+                `**Study type:** ${study_type[index]}\n\n` +
+                `**Strength:** ${evidence_strength[index]}`
+                );
+            });
+            message_string = message.join('\n');
+
+            document.getElementById("inputForm").reset();
+
+            updateHistory("user", message_string);
+            updateHistory("assistant", "Loading...");
+            
+            const extract = await fetch("/extract_check_in",{
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({hypothesis: hypothesis, evidence: evidence, study_type: study_type, evidence_strength: evidence_strength, data_link_1: data_link_1, data_link_2: data_link_2,
+                    variable: variable, variable_unit: unit, collection_method: collection_method, goal: goal, variable_type: variable_type
+                })
+            });
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: message_string, is_revision: true})
+            });
+
+            updateHistory("remove", "");
+
+            const data = await response.json();
+            
+            updateHistory("assistant", data.reply);
+
+            return;
+        }
+
+            if(action == "download")
+        {
+            const response = await fetch("/download_data",{
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({hypothesis: hypothesis, evidence: evidence, study_type: study_type, evidence_strength: evidence_strength, data_link_1: data_link_1, data_link_2: data_link_2,
+                    variable: variable, variable_unit: unit, collection_method: collection_method, goal: goal, variable_type: variable_type
+                })
+            });
+
+            const blob = await response.blob();
+            const title = response.headers.get("Content-Title");
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = title;
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(url)
+
+            return;
+        }
+
+        }
+
+        async function clearHistory() {
+            const clearButton = document.getElementById("clearHistoryButton").style.display = "none";
+            const confirmButton = document.getElementById("confirmClearHistoryButton").style.display = "";
+        }
+        
+        async function confirmClearHistory() {
+            const response = await fetch("/clear_history", {
+                method: "GET",
+                headers: {"Content-Type": "application/json"},
+            });
+            window.location.reload();
+        }
+        
+        async function createAccount()
+        {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const name = document.getElementById("name").value;
+            const section = document.getElementById("section").value;
+
+            const statusText = document.getElementById("statusText");
+
+            const response = await fetch("/create_account", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: email, password: password, name: name, section: section})
+            });
+
+            const data = await response.json();
+
+            if(data.status == "success")
+            {
+                statusText.textContent = "logging in...";
+                window.location.href = "/planning_agent";
+                return;
+            }
+
+            statusText.textContent = data.status;
+        }
+        
+        function help(action) {
+            const openButton = document.getElementById("openHelpButton");
+            const helpText = document.getElementById("helpText");
+
+            if (action == "open") {
+                openButton.style.display = "none";
+                helpText.style.display = "flex";
+            }
+
+            if (action == "close") {
+                openButton.style.display = "";
+                helpText.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

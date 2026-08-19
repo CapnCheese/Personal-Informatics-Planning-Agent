@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/icon2.png')}}">
+</head>
+
+<body class="login_body">
+
+
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <button id="openHelpButton" onclick="help('open')">Help</button>
+
+        <div id="helpText" style="display: none; flex-direction: column; align-items: flex-end;">
+            <div style="margin-bottom: 10px; width: 20vw; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; padding: 10px;">
+                <h4>Account recovery:</h4>
+                <p>A message will be sent to the email entered in the "email" field<br>This will set your password to a NEW password, which can be found in the message</p>
+                <p>Contact the developer (bug reporting/last resort): afrango1@umbc.edu</p>
+            </div>
+            <button onclick="help('close')">Close</button>
+        </div>
+    </div>
+
+
+    <i style="display: flex; flex-direction: column; align-items: center; margin-top: 15vh; margin-bottom: 10vh; font-size: 50px; text-shadow: 5px 5px 3px black;">Login</i>
+    <form class="login" method="POST">
+        <input style="text-align: center; width: 250px; height: 50px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "email">
+        <input style="text-align: center; width: 250px; height: 50px;" class = "userInput" id = "password" type = "password" name = "password" placeholder = "password">
+    <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
+        <button type="button" onclick="login()" style="width: 130px;">Login/Already logged in</button>
+        <a href="{{ url_for('account_page') }}">
+            <button type="button" style="width: 130px;">Create account</button>
+        </a>
+    </div>
+        <button id="recoverButton" type="button" onclick="recoverPassword()" style="width: 270px;">Recover password (enter email)</button>
+        <button id="confirmRecoverButton" type="button" onclick="confirmRecover()" style="width: 270px; display: none;">Are you sure? This will create a new password.</button>
+    </form>
+    <div style="width: 100vw; display: flex; flex-direction: column; align-items: center;">
+        <p id="statusText"></p>
+    </div>
+
+    <script>
+        async function login()
+        {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const statusText = document.getElementById("statusText");
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: email, password: password})
+            });
+
+            const data = await response.json();
+
+            if (data.status == "success")
+            {
+                statusText.textContent = "logging in...";
+                window.location.href = "/planning_agent";
+                return;
+            }
+            
+            if (data.status == "admin")
+            {
+                statusText.textContent = "welcome, admin";
+                window.location.href = "/admin_page";
+                return;
+            }
+
+            statusText.textContent = data.status;
+        }
+        function recoverPassword()
+        {
+            const recoverButton = document.getElementById("recoverButton").style.display = "none";
+            const confirmButton = document.getElementById("confirmRecoverButton").style.display = "";
+        }
+        async function confirmRecover()
+        {
+            const email = document.getElementById("email").value;
+
+            const statusText = document.getElementById("statusText");
+
+            statusText.textContent = "sending email...";
+
+            const response = await fetch("/recover_password", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: email})
+            });
+            
+            const data = await response.json();
+
+            if(data.status == "success") statusText.textContent = "email sent! (check spam)";
+            if(data.status == "failed") statusText.textContent = "failed to send email. ensure you entered the correct email."
+        }
+        function help(action) {
+            const openButton = document.getElementById("openHelpButton");
+            const helpText = document.getElementById("helpText");
+
+            if (action == "open") {
+                openButton.style.display = "none";
+                helpText.style.display = "flex";
+            }
+
+            if (action == "close") {
+                openButton.style.display = "";
+                helpText.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>

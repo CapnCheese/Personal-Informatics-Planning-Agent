@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/icon.png')}}">
+</head>
+
+<body class="login_body">
+
+
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <button id="openHelpButton" onclick="help('open')">Help</button>
+
+        <div id="helpText" style="display: none; flex-direction: column; align-items: flex-end;">
+            <div style="margin-bottom: 10px; width: 20vw; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; padding: 10px;">
+                <h4>Email verification:</h4>
+                <p>Pressing the "Send code to email" button results in a 6-digit code being sent to the entered email<br>This must be completed before creating an account</p>
+                <h4>Account creation:</h4>
+                <p>Please enter your UMBC email, as well as a secure, 8 character long password. These should be saved when the "save information" prompt appears and the top right (Chrome)<p>
+                <p>For the name, enter in your full first and last names. As for the instructor, simply choose the name of your teacher for the course</p>
+                <p>Contact the developer (bug reporting/last resort): afrango1@umbc.edu</p>
+            </div>
+            <button onclick="help('close')">Close</button>
+        </div>
+    </div>
+
+
+    <i style="display: flex; flex-direction: column; align-items: center; margin-top: 15vh; margin-bottom: 10vh; font-size: 50px; text-shadow: 5px 5px 3px black;">Create an account</i>
+    <form class="login" method="POST">
+        <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "UMBC email">
+
+        <div id="creation" style="display: none;">
+            <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "password" type = "password" name = "password" placeholder = "password">
+            <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "name" type = "name" name = "name" placeholder = "name">
+            <select style="text-align: center; width: 270px; min-height: 60px; padding: 10px;" class = "userInput" id = "section" type = "section" name = "section" placeholder = "teacher name/class sectiom">
+                <option>select instructor</option>
+                <option>instructor 1</option>
+                <option>instructor 2</option>
+                <option>instructor 3</option>
+            </select>
+            
+            <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
+                <button type="button" onclick="createAccount()" style="width: 130px;">Create account</button>
+                <a href="{{ url_for('login_page') }}">
+                    <button type="button" onclick="loginPage()" style="width: 130px;">Back</button>
+                </a>
+            </div>
+        </div>
+
+        <div id="verification" class="login">
+            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; column-gap: 10px;">
+                <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "code" type = "code" name = "email" placeholder = "6-digit code">
+            </div>
+
+            <button id="verifyButton" type="button" onclick="verifyEmail('verify')" style="display: none; width: 270px; height: 62px; border-radius: 16px;">Verifiy Email</button>
+
+            <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
+                <button type="button" onclick="verifyEmail('send')" style="text-align: center; width: 130px; min-height: 40px;">Send code to email</button>
+                <a href="{{ url_for('login_page') }}">
+                    <button type="button" onclick="loginPage()" style="width: 130px;">Back</button>
+                </a>
+            </div>
+        </div>
+
+    </form>
+    <div style="width: 100vw; display: flex; flex-direction: column; align-items: center;">
+        <p id = "credentialsText" style="display: none;">Save your credentials somewhere safe!</p>
+        <p id = "statusText"></p>
+    </div>
+
+    <script>
+        async function verifyEmail(action)
+        {
+            const email = document.getElementById("email").value;
+            const code = document.getElementById("code").value;
+            const verifyButton = document.getElementById("verifyButton");
+            const creation = document.getElementById("creation");
+            const verification = document.getElementById("verification");
+            const credentialsText = document.getElementById("credentialsText");
+            const statusText = document.getElementById("statusText");
+
+            const response = await fetch("/verify_email", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: email, code: code, action: action})
+            });
+            const data = await response.json();
+
+            if(action == "send" && data.status == "success")
+            {
+                verifyButton.style.display = "";
+                statusText.textContent = "code sent to the entered email!";
+                return;
+            }
+
+            if(data.status == "success")
+            {
+                credentialsText.style.display = "";
+                statusText.textContent = "email verified!";
+                verification.style.display = "none";
+                creation.style.display = "flex";
+                creation.className = "login";
+                return;
+            }
+
+            statusText.textContent = data.status;
+        }
+        async function createAccount()
+        {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const name = document.getElementById("name").value;
+            const section = document.getElementById("section").value;
+
+            const statusText = document.getElementById("statusText");
+
+            const response = await fetch("/create_account", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email: email, password: password, name: name, section: section})
+            });
+
+            const data = await response.json();
+
+            if(data.status == "success")
+            {
+                statusText.textContent = "logging in...";
+                window.location.href = "/planning_agent";
+                return;
+            }
+
+            statusText.textContent = data.status;
+        }
+        function help(action) {
+            const openButton = document.getElementById("openHelpButton");
+            const helpText = document.getElementById("helpText");
+
+            if (action == "open") {
+                openButton.style.display = "none";
+                helpText.style.display = "flex";
+            }
+
+            if (action == "close") {
+                openButton.style.display = "";
+                helpText.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>

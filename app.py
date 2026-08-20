@@ -49,21 +49,12 @@ The student is looking for guidance in planning a self study of personal informa
 EVALUATION_PROMPT = """
 The student will send you their proposed hypothesis or hypotheses. For each hypothesis, there will be a piece of evidence, including a URL, type of study, and strength of evidence. They will also submit the data variables that they plan to collect, the collection method for each variable, the units that they will measure it in, the goal for their variable, and the type of variable (a dropdown of categories). If they did not submit the required input, request them to submit the necessary information. Internally for validation only, you will: Identify the independent and dependent variable listed in the hypothesis. Identify the data that the student plans to collect. Identify any variables listed in the hypothesis but not in the data plan. Identify any variables that are listed differently in the data plan than the hypothesis. Identify variables that are completely different from the hypothesis. You will output one of the following categories: Good alignment between the hypothesis and data variables: The variables in the hypothesis are the same as the variables that the student plans to collect. Good alignment with an extra data variable: The variables in the hypothesis are listed in the student's data collection plan, but there are other confounding variables listed in the data collection plan which are irrelevant to the hypothesis. (Example: hypothesis is “more screen time leads to less sleep” and the variables collected are sleep duration, screen time, and caffeine intake.) Ask the student why they listed a seemingly unrelated variable, and prompt them to create another hypothesis involving that variable. (Example: caffeine intake seems irrelevant to the hypothesis, but caffeine could be a confounding variable in the original hypothesis, affecting the outcome of the dependent variable. A second hypothesis could be added: “more caffeine in the evening leads to less sleep.”) In the case of multiple hypotheses: Before identifying extra variables, evaluate the entire set of hypotheses collectively. A variable is only an extra variable if it is not referenced by any of the hypotheses submitted. Variables used in different hypotheses should not be flagged as extra. If the variable is a confounding variable for a hypothesis, it’s okay to stay as it is. Okay alignment between the hypothesis and data variables has two subcategories: The data variables and hypothesis are slightly different: The variables in the hypothesis are slightly different from the variables the student plans to collect, but are about the same topic. (Example: hypothesis is “good quality sleep leads to more energy” and the data being collected is sleep duration, not sleep quality.) Explain to the student the discrepancies between the two sets of variables. Depending on the scenario, encourage the student to change the hypothesis rather than changing the variables to fit the hypothesis. The variables in the hypothesis are overly vague: The variables listed in the hypothesis are not specific, but the data the student plans to collect contains more specificity. (Example: the hypothesis is “exercise leads to a happier mood” and the data being collected is exercise heart rate, or exercise duration, or a true/ false gym attendance.) Suggest that the student changes the hypothesis to be more specific, making it less vague. (Example: ask what the student means by exercise?) Complete misalignment between the hypothesis and data variables has four subcategories: There is a conflict between your hypothesis and data variables: The variables in the hypothesis are completely different from the variables the student plans to collect. (Example: hypothesis is “more screen time leads to less study time” and the data being collected are video game usage and sleep duration.) Ask the student to expand on why they plan to track those variables in relation to their hypothesis. Encourage the student to adjust the hypothesis if needed. There is a missing variable: The student submitted a hypothesis, but there are missing variables. (Example: the student’s hypothesis is “good sleep leads to better academic performance” and the data collected are sleep quality and sleep duration. There is no plan to track academic performance.) Identify and point out the missing variable that the student needs to collect. Your hypothesis is missing/ incomplete: The student is missing a hypothesis. You’re missing both the hypothesis and data variables: The student did not submit either the hypothesis or the variables. For all outputs: this project is exploratory self tracking, and hypotheses are not permanent. Remind the student that the hypothesis doesn’t need to be hyperspecific, and they can adjust their hypotheses as the weeks progress. If the student has multiple ideas, don’t make them choose between the two. Encourage the student to expand into multiple hypotheses, or the potential for multiple hypotheses at a later date. Next, internally for validation only, you will: identify appropriate methods for tracking the data, and compare with the student’s planned method. Your output will be one of the following categories: Good collection plan: The student plans to collect the data in a way that makes sense for the data, in a way which is easy to collect. Good collection plan, but it’s likely you will forget to record the data: The student plans to collect the data in a way that makes sense for the data. However, the student plans to record the data manually, in a way that takes effort (such as waist circumference, heart rate, etc). If possible, suggest to the student ways to automate the data recording (a fitness watch which automatically measures and records heart rate at a certain time every day, iphone shortcuts, etc). Poor collection plan: The student plans to collect the data in a way which is misaligned with the data. Missing collection plan: The student did not list a collection method. "Easy collection," "Difficult collection," and “Vague data” are subcategories that should be evaluated whenever a collection plan is missing. Your variables will be easy to collect: The data seems easy to collect, so ask the student to make a collection plan. Your variables may be difficult to collect: The data requires specialized equipment or is not realistically measurable by the student without first defining an accessible proxy. Your variables are overly vague: The data listed is vague. (Example: productivity, relaxation, academic performance.) The Agent can prompt the student to specify their intentions, in order to create a collection plan. (Example: relaxation becomes hours of leisure time, tracked manually. Academic performance becomes grades, tracked on Blackboard.) Specifying the data will help the student think of collection methods themselves. Next, internally for validation only, you will: identify the independent and dependent variable in the hypothesis, access the student-provided URL, identify the variables in the evidence source, identify the similarities and differences between the hypothesis and evidence source, and identify the similarities and differences of the relationship between the variables. From that, you will output an evaluation of the alignment of the hypotheses and the evidence. The categories are as follows: Good alignment between your hypothesis and evidence source: Both the hypothesis and the cited evidence are about the same variables. They both are analyzing a similar relationship between those same variables. Your hypothesis and evidence source are only somewhat aligned: The variables differ slightly, but the overall themes are similar. Your hypothesis and evidence source have an okay alignment: They’re both about the same variables, but the relationship being analyzed in the evidence is different than what the hypothesis proposes. (For example, the hypothesis theorizes a positive relationship, while the evidence claims a negative relationship between the same two variables.) Your hypothesis and evidence source has poor alignment: The hypothesis and evidence have different variables, or even completely different topics. The evidence is not relevant to the hypothesis. You have missing evidence: The student did not provide an evidence source to compare to the hypothesis. Student facing feedback should be focused on the relationship between the hypothesis and evidence only. Next, you will access the URL and identify the type of study from the evidence based on that type of study. The types of studies are listed weakest to strongest, as follows: (Weakest)- Anecdotal and Expert Opinions: Anecdotal evidence is a person’s own personal experience or view, not necessarily representative of typical experiences. An expert’s standalone opinion, or that given in a written news article, are both considered weak forms of evidence without scientific studies to back them up. Case Reports & Case Series (Observational): A case report is a written record on a particular subject. Though low on the hierarchy of evidence, they can aid detection of new diseases, or side effects of treatments. A case series is similar, but tracks multiple subjects. Both types of study cannot prove causation, only correlation. Case-Control Studies (Observational): Case-control studies are retrospective, involving two groups of subjects, one with a particular condition or symptom, and one without. They then track back to determine an attribute or exposure that could have caused this. Again, these studies show correlation, but it is hard to prove causation. Cohort Studies (Observational): A cohort study is similar to a case-control study. It involves selection of a group of people sharing a certain characteristic or treatment (e.g. exposure to a chemical), and compares them over time to a group of people who do not have this characteristic or treatment, noting any difference in outcome. Randomised Controlled Trials (Experimental): Subjects are randomly assigned to a test group, which receives the treatment, or a control group, which commonly receives a placebo. In ‘blind’ trials, participants do not know which group they are in; in ‘double blind’ trials, the experimenters do not know either. Blinding trials helps remove bias. (Strongest) Systematic Review: Systematic reviews draw on multiple randomised controlled trials to draw their conclusions, and also take into consideration the quality of the studies included. Reviews can help mitigate bias in individual studies and give us a more complete picture, making them the best form of evidence. If the student names any other type of study, you can assume its strength. Your output will be: The correct type of study. An evaluation of the student’s evaluation of the type of study (using the following categories). Accurate evaluation of the type of study: The student’s evaluation aligns closely with that of the Agent. They both agree on the type of the study conducted in the evidence cited. Okay evaluation of the type of study: The student seems to somewhat understand the type of the evidence, but does not articulate it clearly. They may describe it correctly, but do not name it verbatim. Mixed methods studies should receive okay evaluation if the student correctly identified one of the studies within the source. Inaccurate evaluation of the type of study: The student’s evaluation differs completely from the Agent’s in the type of evidence. Next, you will evaluate the evidence based on the 5 aforementioned categories. Compare the analysis to the student’s analysis. If inaccurate, explain why. Your output will be as follows: The correct strength evaluation of the evidence identified. Whether the student was accurate in their evaluation of the strength of the evidence, and why (distinctly separated into categories). Accurate evaluation of the strength of evidence: The student’s evaluation aligns closely with that of the Agent. They both agree on the strength of the study conducted in the evidence cited. Okay Evaluation: The student seems to understand somewhat the strength of the evidence, but does not articulate it clearly, or is slightly off. Inaccurate Evaluation: The student’s evaluation differs completely from the Agent’s in the strength of evidence. Missing Strength of Evidence: The student did not properly identify any strength of evidence. For all outputs, use brevity. Format it in bullet points for easier digestion.
     """
-
-
-rangesVar = ["Form Responses 1!A1:J100"]
-email_column = 1
-emails = []
-total_cost = 0
-data_array = []
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0"
 current_ids = []
 instructors = ['instructor 1', 'instructor 2', 'instructor 3']
 
 #clear/reset data
 current_ids.clear()
-emails.clear()
-data_array.clear()
 
 def require_role(*roles):
     def decorator(f):
@@ -113,29 +104,6 @@ def get_data():
     elif action == "get_role":
         return jsonify({"role": session.get("role")})
 
-#sheet parsing
-def parse(SPREADSHEET_ID):
-    global emails
-
-    match = re.search(r"/d/([a-zA-Z0-9_-]+)", SPREADSHEET_ID)
-    id = match.group(1) if match else None
-
-
-    result = service.spreadsheets().values().batchGet(
-        spreadsheetId = id,
-        ranges = rangesVar,
-        majorDimension="COLUMNS"
-    ).execute()
-
-    for vr in result["valueRanges"]:
-        values = vr.get("values", [])
-
-        emails = values[email_column][1:]
-        for column in values:
-            if len(column) > 1 and values.index(column) > email_column:
-                data_array.append(column)
-        print(data_array)
-
 #sheet writing
 def sheet_update(action, URL, range, data):
 
@@ -160,17 +128,16 @@ def sheet_update(action, URL, range, data):
         ).execute()
 
 #password recovery
-def send_email(address, message):
+def send_email(address, subject, message):
     email = EmailMessage()
     email["To"] = address
     email["From"] = SENDER
-    email["Subject"] = "Password"
+    email["Subject"] = subject
     email.set_content(message)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(SENDER, APP_PASSWORD)
         smtp.send_message(email)
-    print("Sent!")
 
 #signin page
 @app.route("/", methods=["POST", "GET"])
@@ -214,10 +181,6 @@ def login():
             database_password = row["password"]
     finally:
         conn.close()
-
-    print(f"db_pass: {database_password}")
-    print(f"pass: {hashed_password}")
-
     
     if row:
         if id in current_ids:
@@ -257,7 +220,7 @@ def recover_password():
     finally:
         conn.close()
         
-    send_email(email, f"Your NEW password is: {new_password}")
+    send_email(email, "New password", f"Your NEW password is: {new_password}")
     return jsonify({"status": "success"})
 
 #account creation page
@@ -352,7 +315,7 @@ def verify_email():
     if action == "send":
         code = ''.join(secrets.choice(string.digits) for i in range(6))
         session["verification_code"] = code
-        send_email(email, f"Your verification code is: {code}")
+        send_email(email, "Verification code", f"Your verification code is: {code}")
 
         return jsonify({"status": "success"})
     
@@ -580,7 +543,7 @@ def chat():
     if user_message == "welcomemessage":
         response = client.responses.create(
             model="openai.gpt-5.6-luna",
-            instructions=f"Write a SHORT welcome message relevant to the prompt. Prompt: {BRAINSTORMING_PROMPT if module == 'brainstorming' else EVALUATION_PROMPT}",
+            instructions=f"Write a short welcome message relevant to the prompt. Prompt: {BRAINSTORMING_PROMPT if module == 'brainstorming' else EVALUATION_PROMPT}",
             input="complete instructions",
             max_output_tokens=126,
             store=False,
@@ -597,10 +560,7 @@ def chat():
     response = client.responses.create(
         model="openai.gpt-5.6-luna",
         instructions=f"""
-                    You are a research assistant.
-                    Primary responsibilities (in priority order):
-                    1. If the user provides evidence (quotes, citations, snippets, links, etc.), utilize WebSearchTool to locate and utilize the corresponding article for comparative analysis
-                    2. Keep everything short and concise, avoid unnecessary explanation, and always give actionable advice in a clear, listed format
+                    You are a educational research assistant.
                     \n Current module instructions: {BRAINSTORMING_PROMPT if module == 'brainstorming' else EVALUATION_PROMPT}
                 """,
         input=f"{get_history()} + user message: {user_message}",
@@ -612,13 +572,8 @@ def chat():
 
     reply = response.output_text
     
-    print(f"Tokens used: {response.usage.total_tokens}")
-
     message_cost = (response.usage.input_tokens * 0.22 + response.usage.output_tokens * 1.32)/1000000
     total_cost += message_cost
-    
-    print(f"message cost: {message_cost}")
-    print(f"total cost: {total_cost}")
 
     database_update(user_message, reply, module, is_revision)
 
@@ -641,7 +596,6 @@ def database_update(user_message, reply, module, is_revision):
             conn.commit()
 
             cursor.execute("SELECT * FROM chat_table")
-            print("Transactionary data added.")
     finally:
         conn.close()
 
@@ -661,7 +615,6 @@ def get_history():
             cursor.execute("SELECT user_message, reply FROM chat_table WHERE user_id = %s AND hide_from_user = %s ORDER BY transaction_id",
                             (session.get('user_id'), False))
             rows = cursor.fetchall()
-        print("History obtained.")
 
         if rows is not None:
             for row in rows:
@@ -872,7 +825,6 @@ def admin_update():
                 cursor.execute(
                     "DELETE FROM user_table WHERE email = %s", (email,)
                 )
-                print("-----user removed-----")
             conn.commit()
         finally:
             conn.close()

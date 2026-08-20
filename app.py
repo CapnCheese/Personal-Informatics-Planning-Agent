@@ -538,7 +538,6 @@ def chat():
     user_message = data.get("message", "")
     is_revision = data.get("is_revision", False)
     module = session.get("module")
-    global total_cost
 
     if user_message == "welcomemessage":
         response = client.responses.create(
@@ -571,9 +570,6 @@ def chat():
     )
 
     reply = response.output_text
-    
-    message_cost = (response.usage.input_tokens * 0.22 + response.usage.output_tokens * 1.32)/1000000
-    total_cost += message_cost
 
     database_update(user_message, reply, module, is_revision)
 

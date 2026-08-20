@@ -50,7 +50,7 @@
             <form id="inputForm">
                 <textarea class = "userInput" id = "userInput" style="border: none;" placeholder="Ask anything"></textarea>
             </form>
-            <button onclick="enterMessage()" style="margin-right: 16px; margin-left: 16px;">Send</button>
+            <button id="enterButton" onclick="enterMessage()" style="margin-right: 16px; margin-left: 16px;">Send</button>
         </div>
     </div>
 
@@ -196,6 +196,7 @@
 </a>
 
 
+
 </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -246,6 +247,12 @@
             setTimeout(() => {
                 document.getElementById("all").style.display = "block";
                 document.getElementById("dots").style.display = "none";
+                
+                const chatContainer = document.getElementById("chatContainer");
+                chatContainer.scrollTo({
+                    top: chatContainer.scrollHeight,
+                    behavior: "smooth"
+                });
             }, 2000);
 
             const get_history = await fetch("/get_history", {
@@ -289,7 +296,6 @@
             dataLink1InputList.push(document.getElementById("link_1"));
             dataLink2InputList.push(document.getElementById("link_2"));
             
-
             const get_role = await fetch("/get_data", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -300,6 +306,14 @@
             if(role.role == "admin") {
                 document.getElementById("admin_page_button").style.display = "flex";
             }
+            
+            document.getElementById("userInput").addEventListener("keydown", function(event){
+                if (event.code === "Enter")
+                {
+                    event.preventDefault();
+                    enterMessage();
+                }
+            })
         };
 
         function updateHistory(role, content) {
@@ -322,10 +336,20 @@
         
         async function enterMessage() {
             const message = document.getElementById("userInput").value;
+            const chatContainer = document.getElementById("chatContainer");
             document.getElementById("inputForm").reset();
+            
+            if (message === "") {
+                return;
+            }
 
             updateHistory("user", message);
             updateHistory("assistant", "Loading...");
+
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: "smooth"
+            });
 
             const response = await fetch("/chat", {
                 method: "POST",
@@ -337,6 +361,8 @@
             const data = await response.json();
 
             updateHistory("assistant", data.reply);
+
+            document.getElementById("inputForm").reset();
         }
 
         function displayTables(display) {
@@ -767,33 +793,6 @@
                 headers: {"Content-Type": "application/json"},
             });
             window.location.reload();
-        }
-        
-        async function createAccount()
-        {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const name = document.getElementById("name").value;
-            const section = document.getElementById("section").value;
-
-            const statusText = document.getElementById("statusText");
-
-            const response = await fetch("/create_account", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email: email, password: password, name: name, section: section})
-            });
-
-            const data = await response.json();
-
-            if(data.status == "success")
-            {
-                statusText.textContent = "logging in...";
-                window.location.href = "/planning_agent";
-                return;
-            }
-
-            statusText.textContent = data.status;
         }
         
         function help(action) {

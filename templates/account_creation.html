@@ -31,19 +31,22 @@
 
     <i style="display: flex; flex-direction: column; align-items: center; margin-top: 15vh; margin-bottom: 10vh; font-size: 50px; text-shadow: 5px 5px 3px black;">Create an account</i>
     <form class="login" method="POST">
-        <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "UMBC email">
+        <div style="display: flex; flex-direction: row; column-gap: 10px;">
+            <input style="text-align: center; width: 173px; min-height: 40px; padding: 10px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "UMBC email">  
+            <button id="sendEmailButton" type="button" onclick="verifyEmail('send')" style="text-align: center; width: 65px; height: 62px; border-radius: 16px;">Send code</button>
+        </div>
 
         <div id="creation" style="display: none;">
             <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "password" type = "password" name = "password" placeholder = "password">
             <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "name" type = "name" name = "name" placeholder = "name">
             <select style="text-align: center; width: 270px; min-height: 60px; padding: 10px;" class = "userInput" id = "section" type = "section" name = "section" placeholder = "teacher name/class sectiom">
                 <option>select instructor</option>
-                <option>instructor 1</option>
-                <option>instructor 2</option>
-                <option>instructor 3</option>
+                <option>Chen</option>
+                <option>Zaidi</option>
+                <option>Rawal</option>
             </select>
             
-            <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
+            <div style="display: flex; flex-direction: row; column-gap: 10px;">
                 <button type="button" onclick="createAccount()" style="width: 130px;">Create account</button>
                 <a href="{{ url_for('login_page') }}">
                     <button type="button" onclick="loginPage()" style="width: 130px;">Back</button>
@@ -52,17 +55,16 @@
         </div>
 
         <div id="verification" class="login">
-            <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; column-gap: 10px;">
-                <input style="text-align: center; width: 250px; min-height: 40px; padding: 10px;" class = "userInput" id = "code" type = "code" name = "email" placeholder = "6-digit code">
+            <div style="display: flex; flex-direction: row; column-gap: 10px;">
+                <input style="text-align: center; width: 108px; min-height: 40px; padding: 10px;"
+                 class = "userInput" id = "code" type = "code" name = "email" placeholder = "6-digit code">
+                <button type="button" onclick="verifyEmail('verify')"
+                 style="width: 130px; height: 62px; border-radius: 16px;">Verifiy email</button>
             </div>
 
-            <button id="verifyButton" type="button" onclick="verifyEmail('verify')" style="display: none; width: 270px; height: 62px; border-radius: 16px;">Verifiy Email</button>
-
-            <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
-                <button type="button" onclick="verifyEmail('send')" style="text-align: center; width: 130px; min-height: 40px;">Send code to email</button>
-                <a href="{{ url_for('login_page') }}">
-                    <button type="button" onclick="loginPage()" style="width: 130px;">Back</button>
-                </a>
+            <a href="{{ url_for('login_page') }}">
+                <button type="button" onclick="loginPage()" style="width: 270px;">Back</button>
+            </a>
             </div>
         </div>
 
@@ -75,9 +77,9 @@
     <script>
         async function verifyEmail(action)
         {
-            const email = document.getElementById("email").value;
-            const code = document.getElementById("code").value;
-            const verifyButton = document.getElementById("verifyButton");
+            const email = document.getElementById("email");
+            const sendButton = document.getElementById("sendEmailButton");
+            const code = document.getElementById("code");
             const creation = document.getElementById("creation");
             const verification = document.getElementById("verification");
             const credentialsText = document.getElementById("credentialsText");
@@ -86,19 +88,20 @@
             const response = await fetch("/verify_email", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({email: email, code: code, action: action})
+                body: JSON.stringify({email: email.value, code: code.value, action: action})
             });
             const data = await response.json();
 
             if(action == "send" && data.status == "success")
             {
-                verifyButton.style.display = "";
-                statusText.textContent = "code sent to the entered email!";
+                statusText.textContent = "code sent to the entered email! (check spam)";
                 return;
             }
 
             if(data.status == "success")
             {
+                email.style.width = "250px";
+                sendButton.style.display = "none";
                 credentialsText.style.display = "";
                 statusText.textContent = "email verified!";
                 verification.style.display = "none";

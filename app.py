@@ -57,6 +57,7 @@ email_column = 1
 emails = []
 total_cost = 0
 data_array = []
+spreadsheet_url = "https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0"
 current_ids = []
 instructors = ['instructor 1', 'instructor 2', 'instructor 3']
 
@@ -149,9 +150,10 @@ def sheet_update(action, URL, range, data):
             valueInputOption = "RAW",
             body = {
                 "majorDimension": "ROWS",
-                "values": [data]
+                "values": data
             }
         ).execute()
+
     elif action == "clear":
         service.spreadsheets().values().clear(
             spreadsheetId = id,
@@ -589,7 +591,7 @@ def chat():
         reply = response.output_text
         session.modified = True
 
-        asyncio.run(database_update("N/A", reply, module, is_revision))
+        database_update("N/A", reply, module, is_revision)
         
         return jsonify({"reply": reply})
 
@@ -619,12 +621,12 @@ def chat():
     print(f"message cost: {message_cost}")
     print(f"total cost: {total_cost}")
 
-    asyncio.run(database_update(user_message, reply, module, is_revision))
+    database_update(user_message, reply, module, is_revision)
 
     return jsonify({"reply": reply})
 
-#async function for updating chatting table
-async def database_update(user_message, reply, module, is_revision):
+#function for updating chatting table
+def database_update(user_message, reply, module, is_revision):
     conn = get_db()
     
     try:
@@ -699,14 +701,6 @@ def admin_update():
 
         try:
             for instructor in instructors:
-                sheet_update("clear", 'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0', instructor, [])
-                sheet_update("write", 'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0', instructor,
-                ['Student email', 'Number of brainstorming interactions', 'Number of evaluation interactions',
-                 'Number of revisions', 'Latest revision', 'Number of variables', 'Number of hypotheses',
-                 'Sleep type number', 'Excercise type number', 'Food type number', 'Heath other type number',
-                 'SWB type number', 'Work type number', 'Digital type number', 'Study type number',
-                 'Connections type number', 'Hobby/skills type number', 'Spiritual type number', 'Others type number'])
-
                 with conn.cursor() as cursor:
                     cursor.execute("""
                     SELECT
@@ -751,21 +745,24 @@ def admin_update():
 
                         GROUP BY u.user_id, u.email
                         ORDER BY u.email
-                    """,
-                    (instructor,))
-                rows    = cursor.fetchall()
-                rowNum = 1
+                    """, (instructor,))
+                    rows = cursor.fetchall()
+
+                #add headers
+                values = [[
+                 'Student email', 'Number of brainstorming interactions', 'Number of evaluation interactions',
+                 'Number of revisions', 'Latest revision', 'Number of variables', 'Number of hypotheses',
+                 'Sleep type number', 'Excercise type number', 'Food type number', 'Heath other type number',
+                 'SWB type number', 'Work type number', 'Digital type number', 'Study type number',
+                 'Connections type number', 'Hobby/skills type number', 'Spiritual type number', 'Others type number'
+                ]]
 
                 for row in rows:
-                    rowNum += 1
                     if row["latest_revision"] is not None:
                         row["latest_revision"] = row["latest_revision"].strftime("%m/%d/%y %H:%M:%S")
 
-                    sheet_update(
-                        "write",
-                        'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0',
-                        f"{instructor}!A{rowNum}:Z{rowNum}",
-                        [
+                    #populate summary data
+                    values.append([
                         row["student_email"],
                         int(row["brainstorming_count"]),
                         int(row["evaluation_count"]),
@@ -785,52 +782,65 @@ def admin_update():
                         int(row["hobby_count"]),
                         int(row["spiritual_count"]),
                         int(row["others_count"])
-                        ]
-                    )
+                    ])
+
+                sheet_update("clear", spreadsheet_url, instructor, [])
+
+                last_row = len(values)
+
+                sheet_update(
+                    "write",
+                    spreadsheet_url,
+                    f"{instructor}!A1:Z{last_row}",
+                    values
+                )
         finally:
             conn.close()
+
         return jsonify(success=True)
 
     if action == "get_data":
         try:
             for instructor in instructors:
-
-                sheet_update("clear", 'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0', instructor, [])
-                sheet_update("write", 'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0', instructor,
-                        ['Timestamp', 'Email', 'Name', 'Class section', 'Module', 'User message', 'AI message'])
-
                 with conn.cursor() as cursor:
-                    cursor.execute("""SELECT
-                transaction_id,
-                CONVERT_TZ(chat_table.timestamp, 'UTC', 'America/New_York') AS timestamp,
-                user_table.email,
-                user_table.name,
-                user_table.class_section,
-                module,
-                user_message,
-                reply
-                FROM chat_table
-                RIGHT JOIN user_table
-                    ON chat_table.user_id = user_table.user_id
-                WHERE user_table.class_section = %s
-                ORDER BY transaction_id
-                """, (instructor,))
-                rows = cursor.fetchall()
-                rowNum = 1
+                    cursor.execute("""
+                        SELECT
+                            transaction_id,
+                            CONVERT_TZ(chat_table.timestamp, 'UTC', 'America/New_York') AS timestamp,
+                            user_table.email,
+                            user_table.name,
+                            user_table.class_section,
+                            module,
+                            user_message,
+                            reply
+                            FROM chat_table
+                            RIGHT JOIN user_table
+                                ON chat_table.user_id = user_table.user_id
+                            WHERE user_table.class_section = %s
+                            ORDER BY transaction_id
+                    """, (instructor,))
+                    rows = cursor.fetchall()
 
+
+                #add headers
+                values = [[
+                    'Timestamp',
+                    'Email',
+                    'Name',
+                    'Class section',
+                    'Module',
+                    'User message',
+                    'AI message'
+                ]]
 
                 for row in rows:
                     if row["transaction_id"] is None:
                         continue
-                    rowNum += 1
                     timestamp_sql = row["timestamp"]
                     timestamp = timestamp_sql.strftime("%m/%d/%y %H:%M:%S")
 
-                    sheet_update(
-                        "write",
-                        'https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0',
-                        f"{instructor}!A{rowNum}:Z{rowNum}",
-                        [
+                    #populate data for each transaction
+                    values.append([
                         timestamp,
                         row["email"],
                         row["name"],
@@ -838,10 +848,23 @@ def admin_update():
                         row["module"],
                         row["user_message"],
                         row["reply"]
-                        ]
-                    )
+                    ])
+
+                last_row = len(values)
+
+                #clear sheets
+                sheet_update("clear", spreadsheet_url, instructor, [])
+
+                #write transactionary data to the sheet for each instructor
+                sheet_update(
+                    "write",
+                    spreadsheet_url,
+                    f"{instructor}!A1:Z{last_row}",
+                    values
+                )
         finally:
             conn.close()
+
         return jsonify(success=True)
 
     if action == "remove_user":

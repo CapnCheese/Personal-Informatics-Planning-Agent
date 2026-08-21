@@ -50,7 +50,6 @@ The student will submit one or more hypotheses, each paired with its correspondi
     """
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0"
 instructors = ['Chen', 'Zaidi', 'Rawal']
-current_ids = []
 
 #decorator for restricing access to pages/fuctions when not logged in
 def require_role(*roles):
@@ -151,7 +150,7 @@ def login():
 
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    if session.get("user_id") in current_ids:
+    if session.get("user") is not None:
         return jsonify({"status": "success"}), 200
 
     if email == "":
@@ -186,7 +185,6 @@ def login():
         session["role"] = "user"
         session["user_id"] = id
         session["module"] = "brainstorming"
-        current_ids.append(id)
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "invalid credentials"}), 401
 
@@ -286,7 +284,6 @@ def create_account():
         conn.close()
 
     id = row["user_id"]
-    current_ids.append(id)
     session["user_id"] = id
     session["user"] = email
     session["role"] = "user"
@@ -845,8 +842,6 @@ def admin_update():
 @app.route("/logout", methods=["POST"])
 @require_role("user","admin")
 def logout():
-    if session.get("role") != "admin":
-        current_ids.remove(session.get("user_id"))
     session.clear()
     return redirect(url_for("login_page"))
 

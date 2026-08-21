@@ -590,19 +590,43 @@ def database_update(user_message, reply, module, is_revision):
     finally:
         conn.close()
 
-#history for loading onto agent page and giving to ai for reference
-@app.route("/get_history", methods=["GET", "POST"])
-@require_role("user", "admin")
+#history for giving to ai for reference
 def get_history():
-    if request.method == "GET":
-        data = None
-    else:
-        data = request.get_json()
     conn = get_db()
     database_history = []
 
     try:
         with conn.cursor() as cursor:
+            cursor.execute("SELECT user_message, reply FROM chat_table WHERE user_id = %s ORDER BY transaction_id",
+                            (session.get('user_id'),))
+            rows = cursor.fetchall()
+
+        if rows is not None:
+            for row in rows:
+                if row["user_message"] != "N/A":
+                    database_history.append({
+                        "role": "user",
+                        "content": row["user_message"]
+                    })
+                database_history.append({
+                    "role": "assistant",
+                    "content": row["reply"]
+                })
+    finally:
+        conn.close()
+
+    return database_history
+
+#for giving data to webpage
+@app.route("/get_webpage_history", methods=["GET"])
+@require_role("user", "admin")
+def get_webpage_history():
+    conn = get_db()
+    database_history = []
+
+    try:
+        with conn.cursor() as cursor:
+            #show non-hidden history to student
             cursor.execute("SELECT user_message, reply FROM chat_table WHERE user_id = %s AND hide_from_user = %s ORDER BY transaction_id",
                             (session.get('user_id'), False))
             rows = cursor.fetchall()
@@ -621,10 +645,7 @@ def get_history():
     finally:
         conn.close()
 
-    if data is not None and data.get("destination") == "webpage":
-        return jsonify(database_history)
-    else:
-        return database_history
+    return jsonify(database_history)
 
 #admin page
 @app.route("/admin_page")

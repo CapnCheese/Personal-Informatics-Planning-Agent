@@ -263,11 +263,7 @@
                 });
             }, 2000);
 
-            const get_history = await fetch("/get_history", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({destination: "webpage"})
-            });
+            const get_history = await fetch("/get_webpage_history");
             const history = await get_history.json();
             history.forEach(msg => updateHistory(msg.role, msg.content));
 

@@ -25,8 +25,16 @@
         <div id="helpText" style="display: none; flex-direction: column; align-items: flex-end;">
             <div style="margin-bottom: 10px; width: 20vw; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; padding: 10px;">
                 <h4>Messaging:</h4>
+                <p>By default, the Agent will focus on brainstorming</p>
+                <p>Submitting data from the table(press the button with an arrow on the left) will switch the Agent to evaluation</p>
                 <p>Don't abuse the chatting functionality - all messages will be read</p>
                 <h4>Planning table:</h4>
+                <ol>
+                    <li>Enter a variable you would like to test</li>
+                    <li>Enter the appropriate information for that variable</li>
+                    <li>Add/remove rows for the amount of variables you wish to test</li>
+                    <li>Repeat the same with hypotheses</li>
+                </ol>
                 <p>Submitting data causes all entered information to be entered into the chat, while retaining the data in the table</p>
                 <p>Downloading a summary (when data is entered into the table) starts a download of a text file with the data and the chat history</p>
                 <p>Clearing history results in ALL data to be cleared - chat history and the data table</p>
@@ -308,12 +316,14 @@
             }
             
             document.getElementById("userInput").addEventListener("keydown", function(event){
-                if (event.code === "Enter")
-                {
+                if (event.code === "Enter" && event.shiftKey) {
+                    return;
+                }
+                else if (event.code === "Enter") {
                     event.preventDefault();
                     enterMessage();
                 }
-            })
+            });
         };
 
         function updateHistory(role, content) {

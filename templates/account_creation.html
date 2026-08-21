@@ -17,11 +17,17 @@
 
         <div id="helpText" style="display: none; flex-direction: column; align-items: flex-end;">
             <div style="margin-bottom: 10px; width: 20vw; border-radius: 16px; border: 1px solid rgb(200,200,200); background: #212121; padding: 10px;">
-                <h4>Email verification:</h4>
-                <p>Pressing the "Send code to email" button results in a 6-digit code being sent to the entered email<br>This must be completed before creating an account</p>
-                <h4>Account creation:</h4>
-                <p>Please enter your UMBC email, as well as a secure, 8 character long password. These should be saved when the "save information" prompt appears and the top right (Chrome)<p>
-                <p>For the name, enter in your full first and last names. As for the instructor, simply choose the name of your teacher for the course</p>
+                <h4>Instructions:</h4>
+                <ol>
+                    <li>Enter your UMBC email</li>
+                    <li>Press the "Send code" button</li>
+                    <li>Check you UMBC email for the code, then enter it into the "6-digit code" field</li>
+                        <p>- if you did not recieve a code, check your spam folder, and double check the email entered</p>
+                    <li>Press the verify email button with the code recieved</li>
+                    <li>If the code is correct, you should see a new page with a password, name, and class section fields</li>
+                    <li>Enter the respective information into each field</li>
+                    <p>- NOTE: if you lose your password, you can go to the login page to recover it, but this will create a NEW password for your account</p>
+                </ol>
                 <p>Contact the developer (bug reporting/last resort): afrango1@umbc.edu</p>
             </div>
             <button onclick="help('close')">Close</button>
@@ -49,7 +55,7 @@
             <div style="display: flex; flex-direction: row; column-gap: 10px;">
                 <button type="button" onclick="createAccount()" style="width: 130px;">Create account</button>
                 <a href="{{ url_for('login_page') }}">
-                    <button type="button" onclick="loginPage()" style="width: 130px;">Back</button>
+                    <button type="button" onclick="loginPage()" style="width: 130px;">Back to login</button>
                 </a>
             </div>
         </div>

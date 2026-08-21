@@ -153,6 +153,7 @@ def login():
 
     if session.get("user_id") in current_ids:
         return jsonify({"status": "success"}), 200
+
     if email == "":
         return jsonify({"status": "no email entered"}), 400
     if password == "":
@@ -185,6 +186,7 @@ def login():
         session["role"] = "user"
         session["user_id"] = id
         session["module"] = "brainstorming"
+        current_ids.append(id)
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "invalid credentials"}), 401
 

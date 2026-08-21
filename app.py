@@ -37,7 +37,6 @@ creds = service_account.Credentials.from_service_account_file(
     scopes=SCOPES
 )
 service = build("sheets", "v4", credentials=creds)
-SPREADSHEET_ID = ""
 SENDER = os.environ.get("SENDER_EMAIL")
 APP_PASSWORD = os.environ.get("SENDER_APP_PASSWORD")
 
@@ -50,12 +49,10 @@ EVALUATION_PROMPT = """
 The student will submit one or more hypotheses, each paired with its corresponding evidence source, including a URL, study type, and strength of evidence. Preserve each hypothesis–evidence pairing. The student will also submit data variables, a collection method, measurement units, a goal, and a variable type for each variable. Preserve these associations. This project is exploratory self-tracking, and hypotheses are not permanent; remind the student that hypotheses can be adjusted as the study progresses and do not need to be hyperspecific. If the student has multiple ideas, do not make them choose between them; encourage multiple hypotheses or the possibility of developing additional hypotheses later. Student-facing feedback should be brief and presented in bullet points. For hypothesis–data alignment, internally identify the variables in the hypothesis, the data the student plans to collect, variables stated in the hypothesis but absent from the data plan, variables represented differently in the data plan, and variables unrelated to the hypothesis. Evaluate all hypotheses collectively. Do not penalize a data variable merely because it is not explicitly stated in one hypothesis; distinguish genuinely unrelated variables from variables that could reasonably serve as confounders. Output one of these categories: Good alignment between the hypothesis and data variables when the hypothesis and data variables are the same; Okay alignment — The data variables and hypothesis are slightly different when they concern the same topic but differ somewhat or could reasonably be operationalized differently; Okay alignment — The variables in the hypothesis are overly vague when the hypothesis is less specific than the data being collected; Complete misalignment — There is a conflict between your hypothesis and data variables when the hypothesis and planned data concern completely different variables; Complete misalignment — There is a missing variable when a variable required by the hypothesis is absent from the data plan; Your hypothesis is missing/incomplete when the student did not submit a hypothesis; or You’re missing both the hypothesis and data variables when neither was submitted. When a variable is missing, you may identify it for the student, but use the student's own wording. For other cases, do not identify or supply variables for the student. Feedback should explain the discrepancy and, when appropriate, encourage the student to reconsider the hypothesis rather than automatically changing the data plan. For collection-plan validation, internally determine whether each planned collection method is appropriate for its data. Output one of these categories: Good collection plan when the method appropriately measures the data; Good collection plan, but it’s likely you will forget to record the data only when the method is appropriate but requires substantial manual effort; Poor collection plan when the method cannot appropriately collect the intended data; or Missing collection plan when no method was provided. For missing plans, additionally classify the data as Your variables will be easy to collect, Your variables may be difficult to collect, or Your variables are overly vague. When data are vague, prompt the student to clarify what they intend to measure so they can determine an appropriate collection method themselves. Do not supply the collection method or examples unless the student asks for help. Do not assume manual collection will be forgotten, and do not recommend reminders, timers, apps, or automation unless the student indicates that they want help with automation. Do not criticize or second-guess a collection method that is objectively capable of collecting the intended data. For hypothesis–evidence alignment, internally identify the variables and relationship in the hypothesis, access the student-provided URL, identify the variables and relationship examined in the evidence, and compare them. Output one of these categories: Good alignment between your hypothesis and evidence source when the variables and relationship are similar; Your hypothesis and evidence source are only somewhat aligned when the variables differ slightly but the overall theme is similar; Your hypothesis and evidence source have an okay alignment when the variables are similar but the relationship differs; Your hypothesis and evidence source has poor alignment when the variables or topics are substantially different; or You have missing evidence when no evidence source was provided. Student-facing feedback should focus only on the relationship between the hypothesis and evidence. Do not identify or supply hypothesis variables for the student. For study-type validation, access the student-provided evidence URL and determine the study type. Use this hierarchy from weakest to strongest: Anecdotal and Expert Opinions; Case Reports & Case Series (Observational); Case-Control Studies (Observational); Cohort Studies (Observational); Randomised Controlled Trials (Experimental); Systematic Review. If the student names another study type, accept its stated strength when appropriate. Output the correct study type and evaluate the student's classification using one of these categories: Accurate evaluation of the type of study when the student's evaluation closely matches the correct classification; Okay evaluation of the type of study when the student demonstrates partial or implicit understanding without clearly naming the type, including correctly identifying one study within a mixed-methods source; or Inaccurate evaluation of the type of study when the student's classification is substantially different. For strength-of-evidence validation, compare the student's evaluation with the correct strength based on the study type and the hierarchy above. Output the correct strength and one of these categories: Accurate evaluation of the strength of evidence when the student's evaluation closely matches; Okay Evaluation when the student demonstrates partial understanding or is slightly off; Inaccurate Evaluation when the student's evaluation is substantially different; or Missing Strength of Evidence when the student did not provide a meaningful strength evaluation. Throughout the validation process, preserve the student's autonomy. Do not rewrite, complete, or suggest hypotheses. Do not invent variables, collection methods, or interpretations that the student did not provide. Distinguish between identifying a missing element for validation and supplying an idea for the student. Keep all student-facing outputs concise and in bullet points.
     """
 spreadsheet_url = "https://docs.google.com/spreadsheets/d/1GreXWL_hZxXWDSr3Fi-uYZDHYquodDKrd1agWAP_tXE/edit?gid=0#gid=0"
-current_ids = []
 instructors = ['Chen', 'Zaidi', 'Rawal']
+current_ids = []
 
-#clear/reset data
-current_ids.clear()
-
+#decorator for restricing access to pages/fuctions when not logged in
 def require_role(*roles):
     def decorator(f):
         @wraps(f)
@@ -68,7 +65,7 @@ def require_role(*roles):
         return(decorated_function)
     return(decorator)
 
-#database
+#database connection function
 def get_db():
     return pymysql.connect(
         host=os.environ.get("RDS_HOST"),
@@ -156,7 +153,6 @@ def login():
 
     if session.get("user_id") in current_ids:
         return jsonify({"status": "success"}), 200
-
     if email == "":
         return jsonify({"status": "no email entered"}), 400
     if password == "":
@@ -183,11 +179,8 @@ def login():
         conn.close()
     
     if row:
-        if id in current_ids:
-            return jsonify({"status": "conflicting user/already logged in"}), 409
         if hashed_password != database_password:
             return jsonify({"status": "incorrect password"}), 401
-        current_ids.append(id)
         session["user"] = email
         session["role"] = "user"
         session["user_id"] = id

@@ -33,7 +33,7 @@
     <form class="login" method="POST">
         <div style="display: flex; flex-direction: row; column-gap: 10px;">
             <input style="text-align: center; width: 173px; min-height: 40px; padding: 10px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "UMBC email">  
-            <button id="sendEmailButton" type="button" onclick="verifyEmail('send')" style="text-align: center; width: 65px; height: 62px; border-radius: 16px;">Send code</button>
+            <button id="sendEmailButton" type="button" onclick="verifyEmail('send')" style="text-align: center; width: 65px; height: 62px;">Send code</button>
         </div>
 
         <div id="creation" style="display: none;">
@@ -59,7 +59,7 @@
                 <input style="text-align: center; width: 108px; min-height: 40px; padding: 10px;"
                  class = "userInput" id = "code" type = "code" name = "email" placeholder = "6-digit code">
                 <button type="button" onclick="verifyEmail('verify')"
-                 style="width: 130px; height: 62px; border-radius: 16px;">Verifiy email</button>
+                 style="width: 130px; height: 62px;">Verifiy email</button>
             </div>
 
             <a href="{{ url_for('login_page') }}">

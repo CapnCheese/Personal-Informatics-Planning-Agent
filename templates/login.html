@@ -30,14 +30,14 @@
     <form class="login" method="POST">
         <input style="text-align: center; width: 250px; height: 50px;" class = "userInput" id = "email" type = "email" name = "email" placeholder = "email">
         <input style="text-align: center; width: 250px; height: 50px;" class = "userInput" id = "password" type = "password" name = "password" placeholder = "password">
-    <div style="display: grid; grid-template-columns: 130px 130px; grid-column-gap: 10px;">
+    <div style="display: flex; flex-direction: row; column-gap: 10px;">
         <button type="button" onclick="login()" style="width: 130px;">Login/Already logged in</button>
-        <a href="{{ url_for('account_page') }}">
-            <button type="button" style="width: 130px;">Create account</button>
-        </a>
+        <button id="recoverButton" type="button" onclick="recoverPassword()" style="width: 130px;">Reset password</button>
+        <button id="confirmRecoverButton" type="button" onclick="confirmRecover()" style="width: 130px; display: none;">Are you sure?</button>
     </div>
-        <button id="recoverButton" type="button" onclick="recoverPassword()" style="width: 270px;">Recover password (enter email)</button>
-        <button id="confirmRecoverButton" type="button" onclick="confirmRecover()" style="width: 270px; display: none;">Are you sure? This will create a new password.</button>
+        <a href="{{ url_for('account_page') }}">
+            <button type="button" style="width: 270px;">Create account</button>
+        </a>
     </form>
     <div style="width: 100vw; display: flex; flex-direction: column; align-items: center;">
         <p id="statusText"></p>
